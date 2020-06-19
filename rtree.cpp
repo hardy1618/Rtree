@@ -188,11 +188,7 @@ int main( int argc, char *argv[]) {
 	page_size= PAGE_CONTENT_SIZE;
 	buffersize= BUFFER_SIZE;
 	intsize= sizeof(int);
-	file.open(argv[1],ios::in); 
-	string qw;
-	getline(file,qw);
-	getline(file,qw);
-	d=split(qw).size()-1;
+	d=strtol(argv[3], &p, 10);
 	nodesize= 2+ 2*d + maxcap*(1+2*d);
 	int ae[nodesize];
 	// cout<<nodesize<<" "<<sizeof(ae)<<endl;
