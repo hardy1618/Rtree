@@ -33,6 +33,8 @@ FileManager fm;
 
 // Optimization idea -- Dont place node everywhere. Directly memcpy 
 
+
+
 char sz[10000];
 void fun(int i){
 	// Agar maxcap entries bhaari hai level[i] me
@@ -99,7 +101,6 @@ void fun(int i){
 
 		memcpy(&leveldata[i+1][papakanodenumber*nodesize],&node,nodesize*intsize);
 		loop(j,0,nodesize) cout<<j<<" = "<<node[j]<<endl;
-
 	}
 	if(levels[i]%pagecap == 0){
 		int pagenumber = levelpages[i].GetPageNum();
@@ -109,12 +110,7 @@ void fun(int i){
 		leveldata[i]=levelpages[i].GetData();
 	}
 	levels[i]++;
-
 }
-
-
-
-
 
 
 void bulkload(string location ,int N){
@@ -173,13 +169,6 @@ void bulkload(string location ,int N){
 
 
 
-
-
-
-
-
-
-
 int main( int argc, char *argv[]) {
 	fstream newfile,file;	
 	// loop(i,1,argc) cout<<argv[i]<<endl;
@@ -193,6 +182,7 @@ int main( int argc, char *argv[]) {
 	int ae[nodesize];
 	// cout<<nodesize<<" "<<sizeof(ae)<<endl;
 	pagecap= int(page_size/sizeof(ae));
+
 	// cout<<pagecap<<endl;
 	newfile.open(argv[1],ios::in); 
 	if (newfile.is_open()){ 
