@@ -171,8 +171,13 @@ void bulkload(string location ,int N){
 }
 
 
+void query(vector<int> & point){
 
+}
 
+void insert(vector<int> & point){
+    
+}
 
 
 
@@ -206,10 +211,16 @@ int main( int argc, char *argv[]) {
 				// test();
 			}
 			else if(temp[0]=="INSERT"){
-				// insert(int(temp[1]),int(temp[2]));
+                vector<int> point(d,0);
+                loop(i, 0, d) 
+                    point[i] = stoi(temp[i+1]);
+				insert(point);
 			}
 			else{
-				// query(int(temp[1]),int(temp[2]));
+                vector<int> point(d,0);
+                loop(i, 0, d) 
+                    point[i] = stoi(temp[i+1]);
+				query(point);
 			}
 		}
 	  	newfile.close(); 
@@ -218,3 +229,5 @@ int main( int argc, char *argv[]) {
 	else cout<<"Error file not opening"<<endl;
 
 }
+
+//levels[i] is the number of child nodes in the i-1 th layer.
