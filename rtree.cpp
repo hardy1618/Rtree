@@ -98,11 +98,11 @@ void fun(int i){
 			node[2+j]= min(node[2+j],childnode[2+j]);
 			node[2+d+j]=max(node[2+d+j],childnode[2+d+j]);
 		}
-
 		memcpy(&leveldata[i+1][papakanodenumber*nodesize],&node,nodesize*intsize);
-		loop(j,0,nodesize) cout<<j<<" = "<<node[j]<<endl;
+		// loop(j,0,nodesize) cout<<j<<" = "<<node[j]<<endl;
 	}
 	if(levels[i]%pagecap == 0){
+		cout<<"4"<<endl;
 		int pagenumber = levelpages[i].GetPageNum();
 		levelfiles[i].MarkDirty(pagenumber);
 		levelfiles[i].UnpinPage(pagenumber);
@@ -118,7 +118,8 @@ void bulkload(string location ,int N){
 	levels.push_back(1);
 	levelpages.push_back(levelfiles.back().NewPage());
 	leveldata.push_back(levelpages.back().GetData());
-	FileHandler fh= fm.OpenFile("Testcases/TC_1/sortedData_2_10_100.txt");
+	loop(i,0,location.size()) sz[i]=location[i];
+	FileHandler fh= fm.OpenFile(sz);
 	PageHandler ph = fh.FirstPage();
 	char *data = ph.GetData ();
 	int countread=0,ids;
@@ -131,7 +132,6 @@ void bulkload(string location ,int N){
 	loop(i,0,N){
 		if((i!=0 && i%maxcap==0) || (i==N-1) ){
 			// node ko write page me likhna hai
-			// cout<<"yeah"<<endl;
 			memcpy(&leveldata[0][(levels[0]%pagecap)*nodesize], &node, intsize*nodesize);
 
 			loop(j,0,nodesize) node[j]=0;
@@ -142,12 +142,16 @@ void bulkload(string location ,int N){
 			fun(0);
 		}
 		node[0]=levels[0];
+		node[1]=int(levels[0]/maxcap);
 		int num;
 		loop(j,0,d){
 			if(countread==page_size){   //if reader page is full and needs new page
 				countread=0;
-				ph=fh.NextPage(ph.GetPageNum());
+				int readpagenumber= ph.GetPageNum();
+				fh.UnpinPage(readpagenumber);
+				ph=fh.NextPage(readpagenumber);
 				data=ph.GetData();
+
 			}
 			memcpy (&num, &data[countread], intsize);
 			node[d+2+j]=max(node[d+2+j],num);
@@ -157,13 +161,13 @@ void bulkload(string location ,int N){
 		}
 
 	}
-	fm.DestroyFile("0.txt");
-	fm.DestroyFile("1.txt");
-	fm.DestroyFile("2.txt");
+	cout<<levels.size()<<endl;
+	loop(i,0,levels.size()){
+	    sprintf(sz, "%d.txt", i);
+		cout<<"destroyed"<<i<<endl;
 
-	// int temp[nodesize];
-	// memcpy(&temp[0],&leveldata[0][nodesize],nodesize*intsize);
-	// loop(i,0,nodesize) cout<<i<<" = "<<temp[i]<<endl;
+		fm.DestroyFile(sz);
+	}
 }
 
 
