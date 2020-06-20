@@ -53,7 +53,7 @@ void fun(int i){
 			loop(j,0,d){
 				node[2+j]=node1[2+j];
 				node[2+d+j]= node1[2+d+j];
-				node[2*d+ 2]=levels[j];
+				node[2*d+ 2]=0;
 				node[2*d+ 3+j]= node1[2+j];
 				node[3*d + 3+ j]= node1[d +2+j];
 			}
