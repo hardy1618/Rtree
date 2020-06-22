@@ -33,6 +33,8 @@ FileManager fm;
 
 // Optimization idea -- Dont place node everywhere. Directly memcpy 
 
+
+
 char sz[10000];
 void fun(int i){
 	// Agar maxcap entries bhaari hai level[i] me
@@ -51,7 +53,7 @@ void fun(int i){
 			loop(j,0,d){
 				node[2+j]=node1[2+j];
 				node[2+d+j]= node1[2+d+j];
-				node[2*d+ 2]=levels[j];
+				node[2*d+ 2]=0;
 				node[2*d+ 3+j]= node1[2+j];
 				node[3*d + 3+ j]= node1[d +2+j];
 			}
@@ -96,12 +98,11 @@ void fun(int i){
 			node[2+j]= min(node[2+j],childnode[2+j]);
 			node[2+d+j]=max(node[2+d+j],childnode[2+d+j]);
 		}
-
 		memcpy(&leveldata[i+1][papakanodenumber*nodesize],&node,nodesize*intsize);
-		loop(j,0,nodesize) cout<<j<<" = "<<node[j]<<endl;
-
+		// loop(j,0,nodesize) cout<<j<<" = "<<node[j]<<endl;
 	}
 	if(levels[i]%pagecap == 0){
+		cout<<"4"<<endl;
 		int pagenumber = levelpages[i].GetPageNum();
 		levelfiles[i].MarkDirty(pagenumber);
 		levelfiles[i].UnpinPage(pagenumber);
@@ -109,12 +110,7 @@ void fun(int i){
 		leveldata[i]=levelpages[i].GetData();
 	}
 	levels[i]++;
-
 }
-
-
-
-
 
 
 void bulkload(string location ,int N){
@@ -122,7 +118,8 @@ void bulkload(string location ,int N){
 	levels.push_back(1);
 	levelpages.push_back(levelfiles.back().NewPage());
 	leveldata.push_back(levelpages.back().GetData());
-	FileHandler fh= fm.OpenFile("Testcases/TC_1/sortedData_2_10_100.txt");
+	loop(i,0,location.size()) sz[i]=location[i];
+	FileHandler fh= fm.OpenFile(sz);
 	PageHandler ph = fh.FirstPage();
 	char *data = ph.GetData ();
 	int countread=0,ids;
@@ -135,7 +132,6 @@ void bulkload(string location ,int N){
 	loop(i,0,N){
 		if((i!=0 && i%maxcap==0) || (i==N-1) ){
 			// node ko write page me likhna hai
-			// cout<<"yeah"<<endl;
 			memcpy(&leveldata[0][(levels[0]%pagecap)*nodesize], &node, intsize*nodesize);
 
 			loop(j,0,nodesize) node[j]=0;
@@ -146,13 +142,18 @@ void bulkload(string location ,int N){
 			fun(0);
 		}
 		node[0]=levels[0];
+		node[1]=int(levels[0]/maxcap);
 		int num;
 		loop(j,0,d){
 			if(countread==page_size){   //if reader page is full and needs new page
 				countread=0;
-				ph=fh.NextPage(ph.GetPageNum());
+				int readpagenumber= ph.GetPageNum();
+				fh.UnpinPage(readpagenumber);
+				ph=fh.NextPage(readpagenumber);
 				data=ph.GetData();
+
 			}
+            // can reduce the number of memcpy calls
 			memcpy (&num, &data[countread], intsize);
 			node[d+2+j]=max(node[d+2+j],num);
 			node[2+j]=min(node[2+j],num);
@@ -161,18 +162,85 @@ void bulkload(string location ,int N){
 		}
 
 	}
-	fm.DestroyFile("0.txt");
-	fm.DestroyFile("1.txt");
-	fm.DestroyFile("2.txt");
+	cout<<levels.size()<<endl;
+	loop(i,0,levels.size()){
+	    sprintf(sz, "%d.txt", i);
+		cout<<"destroyed"<<i<<endl;
 
-	// int temp[nodesize];
-	// memcpy(&temp[0],&leveldata[0][nodesize],nodesize*intsize);
-	// loop(i,0,nodesize) cout<<i<<" = "<<temp[i]<<endl;
+		fm.DestroyFile(sz);
+	}
+    //got to unpin all the pages in the buffer after bulkload
 }
 
+/* Point query shall be executed as a depth first search, with the pages being unpinned on backtracking.*/
 
-void query(vector<int> & point){
+// for (non_leaf) internal nodes
+bool iis_contained(vector<int> & point, int* mbrs){
+    loop(j,0,d){
+        if(mbrs[j]>point[j] || mbrs[d+j]<point[j]) return false;
+    }
+    return true;
+}
 
+// for leaf nodes
+bool lis_contained(vector<int> & point, int* node){
+    loop(j,0,d){
+        if(node[2+j]>point[j] || node[2+d+j]<point[j]) return false;
+    }
+    loop(i,0,maxcap){
+        bool same_point = true;
+        loop(j,0,d){
+            if(node[2*d+3 + i *(2*d+1)+j]!=point[j]) same_point = false;
+        }
+        if(same_point) {
+            levelfiles[0].UnpinPage(node[0]%pagecap);
+            return true;   
+        }     
+    }
+    levelfiles[0].UnpinPage(node[0]%pagecap);
+    return false;
+}
+
+bool non_leaf_match(vector<int> & point, int* node, int level){
+    loop(i, 0, maxcap){
+        if(node[2*d+3 + i *(2*d+1)]== INT_MAX || node[2*d+3 + i *(2*d+1)]== INT_MIN) break; //started chechking empty nodes.
+        else if(iis_contained(point, node+(2*d+3 + i *(2*d+1)))){
+            int* childpos = (node + (2*d+2 + i *(2*d+1));
+            int childnum;
+            memcpy(&childnum, childpos, intsize);
+            levelpages[level-1] = levelfiles[level-1].PageAt(childnum/pagecap);
+            leveldata[level-1]=levelpages[level-1].GetData();
+            int childnode[nodesize];
+            memcpy(&childnode, &leveldata[level-1][(childnum%pagecap)*nodesize*intsize], intsize*nodesize);
+            
+            bool is_present;
+            if(level==1) //moving to the leaf node next
+                if(lis_contained(point, childnode)) is_present = true;
+            else
+                if(non_leaf_match(point, childnode, level-1)) is_present = true; 
+            
+            if(is_present){
+                levelfiles[level].UnpinPage(node[0]%pagecap);
+                return true;
+            }
+        }
+    }
+    levelfiles[level].UnpinPage(node[0]%pagecap);
+    return false;
+}
+
+bool query(vector<int> & point){
+    int root_pos = levels.size()-1; //root node is with levels value as 1.
+    int root_node[nodesize];
+    levelpages[root_pos]=levelfiles[root_pos].FirstPage();
+    leveldata[root_pos]=levelpages[root_pos].GetData();
+    memcpy(root_node,&leveldata[root_pos][0],nodesize*intsize);
+    
+    if(iis_contained(point, root_node+2))
+        return non_leaf_match(point, root_node, root_pos);
+    else 
+        return false; 
+        // no need to unpin the root page as it will mostly be used again.
 }
 
 void insert(vector<int> & point){
@@ -198,6 +266,7 @@ int main( int argc, char *argv[]) {
 	int ae[nodesize];
 	// cout<<nodesize<<" "<<sizeof(ae)<<endl;
 	pagecap= int(page_size/sizeof(ae));
+
 	// cout<<pagecap<<endl;
 	newfile.open(argv[1],ios::in); 
 	if (newfile.is_open()){ 
