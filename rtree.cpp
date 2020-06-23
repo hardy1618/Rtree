@@ -67,8 +67,8 @@ void fun(int i){
 		int papakanodenumber= (levels[i+1]-1)%pagecap;
 		int papamechildnumber= (levels[i]-1)%maxcap;
 		int node[nodesize],childnode[nodesize];
-		memcpy(&node,&leveldata[i+1][papakanodenumber*nodesize],nodesize*intsize);
-		memcpy(&childnode,&leveldata[i][childkanodenumber*nodesize],nodesize*intsize);
+		memcpy(&node,&leveldata[i+1][papakanodenumber*nodesize*intsize],nodesize*intsize);
+		memcpy(&childnode,&leveldata[i][childkanodenumber*nodesize*intsize],nodesize*intsize);
 		loop(j,0,d){
 			node[2+2*d+ papamechildnumber*(2*d+1)]=levels[i]-1;
 			node[3+2*d +j+ papamechildnumber*(2*d+1)]=childnode[2+j];
@@ -77,7 +77,7 @@ void fun(int i){
 			node[2+d+j]=max(node[2+d+j],childnode[2+d+j]);
 		}
 
-		memcpy(&leveldata[i+1][papakanodenumber*nodesize],&node,nodesize*intsize);
+		memcpy(&leveldata[i+1][papakanodenumber*nodesize*intsize],&node,nodesize*intsize);
 		// loop(j,0,nodesize) cout<<j<<" = "<<node[j]<<endl;
 
 	}
@@ -89,8 +89,8 @@ void fun(int i){
 		int papakanodenumber= (levels[i+1]-1)%pagecap;
 		int papamechildnumber= 0;
 		int node[nodesize],childnode[nodesize];
-		memcpy(&node,&leveldata[i+1][papakanodenumber*nodesize],nodesize*intsize);
-		memcpy(&childnode,&leveldata[i][childkanodenumber*nodesize],nodesize*intsize);
+		memcpy(&node,&leveldata[i+1][papakanodenumber*nodesize*intsize],nodesize*intsize);
+		memcpy(&childnode,&leveldata[i][childkanodenumber*nodesize*intsize],nodesize*intsize);
 		loop(j,0,d){
 			node[2+2*d+ papamechildnumber*(2*d+1)]=levels[i]-1;
 			node[3+2*d +j+ papamechildnumber*(2*d+1)]=childnode[2+j];
@@ -98,7 +98,7 @@ void fun(int i){
 			node[2+j]= min(node[2+j],childnode[2+j]);
 			node[2+d+j]=max(node[2+d+j],childnode[2+d+j]);
 		}
-		memcpy(&leveldata[i+1][papakanodenumber*nodesize],&node,nodesize*intsize);
+		memcpy(&leveldata[i+1][papakanodenumber*nodesize*intsize],&node,nodesize*intsize);
 		// loop(j,0,nodesize) cout<<j<<" = "<<node[j]<<endl;
 	}
 	if(levels[i]%pagecap == 0){
@@ -132,7 +132,7 @@ void bulkload(string location ,int N){
 	loop(i,0,N){
 		if((i!=0 && i%maxcap==0) || (i==N-1) ){
 			// node ko write page me likhna hai
-			memcpy(&leveldata[0][(levels[0]%pagecap)*nodesize], &node, intsize*nodesize);
+			memcpy(&leveldata[0][(levels[0]%pagecap)*nodesize*intsize], &node, intsize*nodesize);
 
 			loop(j,0,nodesize) node[j]=0;
 			loop(j,0,d){
@@ -170,7 +170,7 @@ void bulkload(string location ,int N){
 		// fm.DestroyFile(sz);
         levelfiles[i].UnpinPage(levelpages[i].GetPageNum());
 	}
-    //got to unpin all the pages in the buffer after bulkload
+    //unpined all the pages in the buffer after bulkload
 }
 
 /* Point query shall be executed as a depth first search, with the pages being unpinned on backtracking.*/
@@ -231,12 +231,11 @@ bool non_leaf_match(vector<int> & point, int* node, int level){
 }
 
 bool query(vector<int> & point){
-    int root_pos = levels.size()-1; //root node is with levels value as 1.
+    int root_pos = levels.size()-1; //root node is with levels value as 1. 
     int root_node[nodesize];
-    levelpages[root_pos]=levelfiles[root_pos].FirstPage();
     leveldata[root_pos]=levelpages[root_pos].GetData();
     memcpy(root_node,&leveldata[root_pos][0],nodesize*intsize);
-    
+    if(root_pos==0) return lis_contained(point, root_node);
     if(iis_contained(point, root_node+2))
         return non_leaf_match(point, root_node, root_pos);
     else 
