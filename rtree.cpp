@@ -42,7 +42,7 @@ void fun(int i){
 	if(levels[i]==1){
 		cout<<"1"<<endl;
 		if(levelfiles.size()<buffersize){
-		    sprintf(sz, "%d.txt", i+1);
+		    sprintf(sz, "./Files/%d.txt", i+1);
 			levelfiles.push_back(fm.CreateFile(sz));
 			levels.push_back(1);
 			levelpages.push_back(levelfiles.back().NewPage());
@@ -114,7 +114,7 @@ void fun(int i){
 
 
 void bulkload(string location ,int N){
-	levelfiles.push_back(fm.CreateFile("0.txt"));
+	levelfiles.push_back(fm.CreateFile("./Files/0.txt"));
 	levels.push_back(1);
 	levelpages.push_back(levelfiles.back().NewPage());
 	leveldata.push_back(levelpages.back().GetData());
@@ -164,10 +164,11 @@ void bulkload(string location ,int N){
 	}
 	cout<<levels.size()<<endl;
 	loop(i,0,levels.size()){
-	    sprintf(sz, "%d.txt", i);
-		cout<<"destroyed"<<i<<endl;
+	    // sprintf(sz, "%d.txt", i);
+		// cout<<"destroyed"<<i<<endl;
 
-		fm.DestroyFile(sz);
+		// fm.DestroyFile(sz);
+        levelfiles[i].UnpinPage(levelpages[i].GetPageNum());
 	}
     //got to unpin all the pages in the buffer after bulkload
 }
@@ -205,7 +206,7 @@ bool non_leaf_match(vector<int> & point, int* node, int level){
     loop(i, 0, maxcap){
         if(node[2*d+3 + i *(2*d+1)]== INT_MAX || node[2*d+3 + i *(2*d+1)]== INT_MIN) break; //started chechking empty nodes.
         else if(iis_contained(point, node+(2*d+3 + i *(2*d+1)))){
-            int* childpos = (node + (2*d+2 + i *(2*d+1));
+            int* childpos = (node + (2*d+2 + i *(2*d+1)));
             int childnum;
             memcpy(&childnum, childpos, intsize);
             levelpages[level-1] = levelfiles[level-1].PageAt(childnum/pagecap);
@@ -268,18 +269,21 @@ int main( int argc, char *argv[]) {
 	pagecap= int(page_size/sizeof(ae));
 
 	// cout<<pagecap<<endl;
-	newfile.open(argv[1],ios::in); 
-	if (newfile.is_open()){ 
+	newfile.open(argv[1],ios::in);
+    file.open(argv[4],ios::out); 
+	if (newfile.is_open() && file.is_open()){ 
 		string tp;	
 		vector<string> temp;
 		while(getline(newfile, tp)){
 			temp= split(tp);
 			if(temp[0]=="BULKLOAD"){
+                file<<"BULKLOAD\n\n";
 				bulkload(temp[1],stoi(temp[2]));
 				cout<<"tisdfsd"<<endl;
 				// test();
 			}
 			else if(temp[0]=="INSERT"){
+                file<<"INSERT\n\n";
                 vector<int> point(d,0);
                 loop(i, 0, d) 
                     point[i] = stoi(temp[i+1]);
@@ -289,10 +293,14 @@ int main( int argc, char *argv[]) {
                 vector<int> point(d,0);
                 loop(i, 0, d) 
                     point[i] = stoi(temp[i+1]);
-				query(point);
+				if(query(point))
+                    file<<"TRUE";
+                else file<<"FALSE";
+                file << "\n\n";
 			}
 		}
 	  	newfile.close(); 
+        file.close();
 	}
 
 	else cout<<"Error file not opening"<<endl;
