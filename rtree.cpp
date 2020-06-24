@@ -114,10 +114,11 @@ void fun(int i){
 
 
 void bulkload(string location ,int N){
-	levelfiles.push_back(fm.CreateFile("./Files/0.txt"));
+    levelfiles.push_back(fm.CreateFile("./Files/0.txt"));
 	levels.push_back(1);
 	levelpages.push_back(levelfiles.back().NewPage());
 	leveldata.push_back(levelpages.back().GetData());
+	if(N==0) return;
 	loop(i,0,location.size()) sz[i]=location[i];
 	FileHandler fh= fm.OpenFile(sz);
 	PageHandler ph = fh.FirstPage();
@@ -163,13 +164,14 @@ void bulkload(string location ,int N){
 
 	}
 	cout<<levels.size()<<endl;
-	loop(i,0,levels.size()){
+	loop(i,0,levels.size()-1){
 	    // sprintf(sz, "%d.txt", i);
 		// cout<<"destroyed"<<i<<endl;
 
 		// fm.DestroyFile(sz);
         levelfiles[i].UnpinPage(levelpages[i].GetPageNum());
 	}
+    fm.PrintBuffer();
     //unpined all the pages in the buffer after bulkload
 }
 
@@ -178,6 +180,7 @@ void bulkload(string location ,int N){
 // for (non_leaf) internal nodes
 bool iis_contained(vector<int> & point, int* mbrs){
     loop(j,0,d){
+        // cout<<mbrs[j]<<mbrs[d+j]<<endl;
         if(mbrs[j]>point[j] || mbrs[d+j]<point[j]) return false;
     }
     return true;
@@ -194,11 +197,14 @@ bool lis_contained(vector<int> & point, int* node){
             if(node[2*d+3 + i *(2*d+1)+j]!=point[j]) same_point = false;
         }
         if(same_point) {
-            levelfiles[0].UnpinPage(node[0]%pagecap);
+            // loop(j,0,d){
+            //     cout<< node[2*d+3 + i *(2*d+1)+j] << " "<<point[j]<<endl;
+            // }
+            levelfiles[0].UnpinPage(levelpages[0].GetPageNum());
             return true;   
         }     
     }
-    levelfiles[0].UnpinPage(node[0]%pagecap);
+    levelfiles[0].UnpinPage(levelpages[0].GetPageNum());
     return false;
 }
 
@@ -214,19 +220,19 @@ bool non_leaf_match(vector<int> & point, int* node, int level){
             int childnode[nodesize];
             memcpy(&childnode, &leveldata[level-1][(childnum%pagecap)*nodesize*intsize], intsize*nodesize);
             
-            bool is_present;
+            bool is_present = false;
             if(level==1) //moving to the leaf node next
                 if(lis_contained(point, childnode)) is_present = true;
             else
                 if(non_leaf_match(point, childnode, level-1)) is_present = true; 
             
             if(is_present){
-                levelfiles[level].UnpinPage(node[0]%pagecap);
+                levelfiles[level].UnpinPage(levelpages[level].GetPageNum());
                 return true;
             }
         }
     }
-    levelfiles[level].UnpinPage(node[0]%pagecap);
+    levelfiles[level].UnpinPage(levelpages[level].GetPageNum());
     return false;
 }
 
@@ -235,7 +241,7 @@ bool query(vector<int> & point){
     int root_node[nodesize];
     leveldata[root_pos]=levelpages[root_pos].GetData();
     memcpy(root_node,&leveldata[root_pos][0],nodesize*intsize);
-    if(root_pos==0) return lis_contained(point, root_node);
+    if(root_pos==0) return false;
     if(iis_contained(point, root_node+2))
         return non_leaf_match(point, root_node, root_pos);
     else 
@@ -282,7 +288,7 @@ int main( int argc, char *argv[]) {
 				// test();
 			}
 			else if(temp[0]=="INSERT"){
-                file<<"INSERT\n\n";
+                // file<<"INSERT\n\n";
                 vector<int> point(d,0);
                 loop(i, 0, d) 
                     point[i] = stoi(temp[i+1]);

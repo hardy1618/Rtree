@@ -22,7 +22,8 @@ file_manager.o : file_manager.cpp
 
 run: rtree
 	rm -f Files/*
-	./rtree q1.txt 100 2 output.txt
+	rm output.txt
+	./rtree ./Testcases/TC_6/queries_2_10_100_100.txt 100 2 output.txt
 
 
 clean :
