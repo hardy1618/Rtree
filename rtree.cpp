@@ -114,6 +114,8 @@ void fun(int i){
 
 
 void bulkload(string location ,int N){
+	fstream forgo;
+    forgo.open("temp.txt",ios::out); 
     levelfiles.push_back(fm.CreateFile("./Files/0.txt"));
 	levels.push_back(1);
 	levelpages.push_back(levelfiles.back().NewPage());
@@ -160,7 +162,10 @@ void bulkload(string location ,int N){
 			node[2+j]=min(node[2+j],num);
 			node[2*d+3 + (i%maxcap) *(2*d+1)+j]=num;
 			countread+=intsize;
+			forgo<<num;
 		}
+		if(i&1) forgo<<"\n";
+		else forgo<<" , ";
 
 	}
 	cout<<levels.size()<<endl;
