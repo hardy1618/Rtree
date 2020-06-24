@@ -87,28 +87,33 @@ void fun(int i){
 		}
 
 		memcpy(&leveldata[i+1][papakanodenumber*nodesize*intsize],node,nodesize*intsize);
-		// loop(j,0,nodesize) cout<<j<<" = "<<node[j]<<endl;
+		// loop(j,0,nodesize) cout<<i<<"ka papa "<<j<<" = "<<node[j]<<endl;
 
 	}
 	else{
 		cout<<"3"<<endl;
 		fun(i+1);
-		cout<<"YEAH"<<endl;
 		int childkanodenumber=(levels[i]-1)%pagecap;
 		int papakanodenumber= (levels[i+1]-1)%pagecap;
 		int papamechildnumber= 0;
 		int node[nodesize],childnode[nodesize];
-		memcpy(node,&leveldata[i+1][papakanodenumber*nodesize*intsize],nodesize*intsize);
-		memcpy(&childnode,&leveldata[i][childkanodenumber*nodesize*intsize],nodesize*intsize);
+		loop(j,0,nodesize) node[j]=0;
+		loop(i,0,d){
+			node[d+2+i]=INT_MIN;
+			node[2+i]= INT_MAX;
+		}
+		memcpy(childnode,&leveldata[i][childkanodenumber*nodesize*intsize],nodesize*intsize);
+		node[0]=levels[i+1]-1;
+		node[1]=int((levels[i+1]-1)/maxcap);
 		loop(j,0,d){
-			node[2+2*d+ papamechildnumber*(2*d+1)]=levels[i]-1;
-			node[3+2*d +j+ papamechildnumber*(2*d+1)]=childnode[2+j];
-			node[3+3*d +j+ papamechildnumber*(2*d+1)]=childnode[2+d+j];
+			node[2+2*d]=levels[i]-1;
+			node[3+2*d +j]=childnode[2+j];
+			node[3+3*d +j]=childnode[2+d+j];
 			node[2+j]= min(node[2+j],childnode[2+j]);
 			node[2+d+j]=max(node[2+d+j],childnode[2+d+j]);
 		}
 		memcpy(&leveldata[i+1][papakanodenumber*nodesize*intsize],node,nodesize*intsize);
-		// loop(j,0,nodesize) cout<<j<<" = "<<node[j]<<endl;
+		// loop(j,0,nodesize) cout<<i<<"ka papa "<<j<<" = "<<node[j]<<" from layer 3 "<<endl;
 	}
 	if(levels[i]%pagecap == 0){
 		cout<<"4"<<endl;
@@ -151,7 +156,8 @@ void bulkload(string location ,int N){
 				node[2+j]= INT_MAX;
 			}
 			fun(0);
-			if(i==N) return;
+
+			if(i==N)  return;
 		}
         //recheck the numbering
 		node[0]=levels[0]-1;
