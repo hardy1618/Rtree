@@ -141,8 +141,8 @@ void bulkload(string location ,int N){
 		node[d+2+i]=INT_MIN;
 		node[2+i]= INT_MAX;
 	}
-	loop(i,0,N){
-		if((i!=0 && i%maxcap==0) || (i==N-1) ){
+	loop(i,0,N+1){
+		if((i!=0 && i%maxcap==0) || (i==N) ){
 			// node ko write page me likhna hai
 			memcpy(&leveldata[0][((levels[0]-1)%pagecap)*nodesize*intsize], node, intsize*nodesize);
 			loop(j,0,nodesize) node[j]=0;
@@ -151,6 +151,7 @@ void bulkload(string location ,int N){
 				node[2+j]= INT_MAX;
 			}
 			fun(0);
+			if(i==N) return;
 		}
         //recheck the numbering
 		node[0]=levels[0]-1;
