@@ -136,7 +136,6 @@ void bulkload(string location ,int N){
 		if((i!=0 && i%maxcap==0) || (i==N-1) ){
 			// node ko write page me likhna hai
 			memcpy(&leveldata[0][(levels[0]%pagecap)*nodesize*intsize], &node, intsize*nodesize);
-
 			loop(j,0,nodesize) node[j]=0;
 			loop(j,0,d){
 				node[d+2+j]=INT_MIN;
@@ -162,10 +161,9 @@ void bulkload(string location ,int N){
 			node[2+j]=min(node[2+j],num);
 			node[2*d+3 + (i%maxcap) *(2*d+1)+j]=num;
 			countread+=intsize;
-			forgo<<num;
+			forgo<<num<<" , ";
 		}
-		if(i&1) forgo<<"\n";
-		else forgo<<" , ";
+		forgo<<"\n";
 
 	}
 	cout<<levels.size()<<endl;
