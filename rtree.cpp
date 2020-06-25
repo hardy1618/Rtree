@@ -87,6 +87,7 @@ void fun(int i){
 		}
 
 		memcpy(&leveldata[i+1][papakanodenumber*nodesize*intsize],node,nodesize*intsize);
+		memcpy(node,&leveldata[i+1][papakanodenumber*nodesize*intsize],nodesize*intsize);
 		// loop(j,0,nodesize) cout<<i<<"ka papa "<<j<<" = "<<node[j]<<endl;
 
 	}
@@ -157,7 +158,15 @@ void bulkload(string location ,int N){
 			}
 			fun(0);
 
-			if(i==N)  return;
+			if(i==N)  {
+				loop(j,0,levels.size()){
+					int pagenumber = levelpages[j].GetPageNum();
+					levelfiles[j].MarkDirty(pagenumber);
+					levelfiles[j].UnpinPage(pagenumber);
+					levelfiles[j].FlushPages();
+				}
+				return;
+			}
 		}
         //recheck the numbering
 		node[0]=levels[0]-1;
@@ -259,11 +268,15 @@ bool non_leaf_match(vector<int> & point, int* node, int level){
 bool query(vector<int> & point){
     int root_pos = levels.size()-1; //root node is with levels value as 1. 
     int root_node[nodesize];
+    // sudesh
+    // fm.PrintBuffer();
+    levelpages[root_pos]=levelfiles[root_pos].FirstPage();
+	// sudesh
     leveldata[root_pos]=levelpages[root_pos].GetData();
     memcpy(root_node,&leveldata[root_pos][0],nodesize*intsize);
     // cout<<"root node"<<endl;
     // loop(i,0,nodesize){
-    //     if(root_node[i]!=0) cout<<root_node[i]<<endl;
+    //     cout<<i<<" "<<root_node[i]<<endl;
     // }
     if(root_pos==0) return false;
     if(iis_contained(point, root_node+2))
@@ -326,6 +339,7 @@ int main( int argc, char *argv[]) {
                     file<<"TRUE";
                 else file<<"FALSE";
                 file << "\n\n";
+                // break;
 			}
 		}
 	  	newfile.close(); 
