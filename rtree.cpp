@@ -50,24 +50,23 @@ void fun(int i){
 	// Since phela maxcap hamesha pagecap se chota rahega so
 	if(levels[i]==1){
 		cout<<"1"<<endl;
-		if(levelfiles.size()<buffersize){
-		    sprintf(sz, "./Files/%d.txt", i+1);
-			levelfiles.push_back(fm.CreateFile(sz));
-			levels.push_back(1);
-			levelpages.push_back(levelfiles.back().NewPage());
-			leveldata.push_back(levelpages.back().GetData());
-			int node[nodesize],node1[nodesize];
-			loop(j,0,nodesize) node[j]=0;
-			memcpy(node1,&leveldata[i][0],nodesize*intsize);
-			loop(j,0,d){
-				node[2+j]=node1[2+j];
-				node[2+d+j]= node1[2+d+j];
-				node[2*d+ 2]=0;
-				node[2*d+ 3+j]= node1[2+j];
-				node[3*d + 3+ j]= node1[d +2+j];
-			}
-			memcpy(&leveldata.back()[0], node, nodesize*intsize);
+	    sprintf(sz, "./Files/%d.txt", i+1);
+		levelfiles.push_back(fm.CreateFile(sz));
+		levels.push_back(1);
+		levelpages.push_back(levelfiles.back().NewPage());
+		leveldata.push_back(levelpages.back().GetData());
+		int node[nodesize],node1[nodesize];
+		loop(j,0,nodesize) node[j]=0;
+		memcpy(node1,&leveldata[i][0],nodesize*intsize);
+		loop(j,0,d){
+			node[2+j]=node1[2+j];
+			node[2+d+j]= node1[2+d+j];
+			node[2*d+ 2]=0;
+			node[2*d+ 3+j]= node1[2+j];
+			node[3*d + 3+ j]= node1[d +2+j];
 		}
+		memcpy(&leveldata.back()[0], node, nodesize*intsize);
+		loop(j,0,nodesize) cout<<i+1<<" "<<j<<" = "<<node[j]<<" --1 "<<endl;
 
 	}
 	else if(levels[i]%maxcap !=1){
@@ -88,7 +87,7 @@ void fun(int i){
 
 		memcpy(&leveldata[i+1][papakanodenumber*nodesize*intsize],node,nodesize*intsize);
 		memcpy(node,&leveldata[i+1][papakanodenumber*nodesize*intsize],nodesize*intsize);
-		// loop(j,0,nodesize) cout<<i<<"ka papa "<<j<<" = "<<node[j]<<endl;
+		loop(j,0,nodesize) cout<<i+1<<" - "<<j<<" = "<<node[j]<<endl;
 
 	}
 	else{
@@ -114,7 +113,7 @@ void fun(int i){
 			node[2+d+j]=max(node[2+d+j],childnode[2+d+j]);
 		}
 		memcpy(&leveldata[i+1][papakanodenumber*nodesize*intsize],node,nodesize*intsize);
-		// loop(j,0,nodesize) cout<<i<<"ka papa "<<j<<" = "<<node[j]<<" from layer 3 "<<endl;
+		loop(j,0,nodesize) cout<<i+1<<" "<<j<<" = "<<node[j]<<" ------3 "<<endl;
 	}
 	if(levels[i]%pagecap == 0){
 		cout<<"4"<<endl;
@@ -151,14 +150,25 @@ void bulkload(string location ,int N){
 		if((i!=0 && i%maxcap==0) || (i==N) ){
 			// node ko write page me likhna hai
 			memcpy(&leveldata[0][((levels[0]-1)%pagecap)*nodesize*intsize], node, intsize*nodesize);
+
+			fun(0);
 			loop(j,0,nodesize) node[j]=0;
+
 			loop(j,0,d){
 				node[d+2+j]=INT_MIN;
 				node[2+j]= INT_MAX;
 			}
-			fun(0);
 
 			if(i==N)  {
+				cout<<" --------------------------------------------------"<<endl;
+				cout<<" --------------------------------------------------"<<endl;
+				cout<<" --------------------------------------------------"<<endl;
+				cout<<" --------------------------------------------------"<<endl;
+				loop(j,1,levels.size()-1){
+					// levels[j]--;
+					fun(j);
+				}
+
 				loop(j,0,levels.size()){
 					int pagenumber = levelpages[j].GetPageNum();
 					levelfiles[j].MarkDirty(pagenumber);
@@ -187,9 +197,9 @@ void bulkload(string location ,int N){
 			node[2+j]=min(node[2+j],num);
 			node[2*d+3 + (i%maxcap) *(2*d+1)+j]=num;
 			countread+=intsize;
-			forgo<<num<<" , ";
+			// forgo<<num<<" , ";
 		}
-		forgo<<"\n";
+		// forgo<<"\n";
 
 	}
 	cout<<levels.size()<<endl;
@@ -266,7 +276,7 @@ bool non_leaf_match(vector<int> & point, int* node, int level){
 }
 
 bool query(vector<int> & point){
-    int root_pos = levels.size()-1; //root node is with levels value as 1. 
+    int root_pos = levels.size()-2; //root node is with levels value as 1. 
     int root_node[nodesize];
     // sudesh
     // fm.PrintBuffer();
