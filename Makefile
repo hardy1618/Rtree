@@ -24,6 +24,7 @@ run: rtree
 	rm -f Files/*
 	rm output.txt
 	./rtree ./Testcases/TC_6/queries_2_10_100_100.txt 9 2 output.txt
+# 	./rtree ./Testcases/TC_5/queries_2_10_100000_100000.txt 5 2 output.txt
 
 
 clean :
