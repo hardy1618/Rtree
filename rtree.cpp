@@ -128,9 +128,9 @@ void fun(int i){
 
 
 void bulkload(string location ,int N){
-	fstream forgo;
+	// fstream forgo;
     points_over = false;
-    forgo.open("temp.txt",ios::out); 
+    // forgo.open("temp.txt",ios::out); 
     levelfiles.push_back(fm.CreateFile("./Files/0.txt"));
 	levels.push_back(1);
 	levelpages.push_back(levelfiles.back().NewPage());
@@ -184,6 +184,7 @@ void bulkload(string location ,int N){
 		node[0]=levels[0]-1;
 		node[1]=int((levels[0]-1)/maxcap);
 		int num;
+		// forgo<<"QUERY ";
 		loop(j,0,d){
 			if(countread==page_size){   //if reader page is full and needs new page
 				countread=0;
@@ -199,7 +200,7 @@ void bulkload(string location ,int N){
 			node[2+j]=min(node[2+j],num);
 			node[2*d+3 + (i%maxcap) *(2*d+1)+j]=num;
 			countread+=intsize;
-			// forgo<<num<<" , ";
+			// forgo<<num<<" ";
 		}
 		// forgo<<"\n";
 
@@ -292,18 +293,15 @@ bool query(vector<int> & point){
 	// sudesh
     leveldata[root_pos]=levelpages[root_pos].GetData();
     memcpy(root_node,&leveldata[root_pos][0],nodesize*intsize);
-<<<<<<< HEAD
     // cout<<"root node"<<endl;
     // loop(i,0,nodesize){
     //     cout<<i<<" "<<root_node[i]<<endl;
     // }
     printNode(root_node);
-=======
     cout<<"root node"<<endl;
     loop(i,0,nodesize){
         cout<<i<<" "<<root_node[i]<<endl;
     }
->>>>>>> a14db25306a0cd18c114be05ead4d1787dd17e9a
     if(root_pos==0) return false;
     if(iis_contained(point, root_node+2))
         return non_leaf_match(point, root_node, root_pos);
