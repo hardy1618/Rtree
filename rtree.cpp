@@ -30,7 +30,7 @@ vector<FileHandler> levelfiles;
 vector<char *> leveldata;
 int d,maxcap,nodesize,pagecap,page_size,intsize,buffersize;
 FileManager fm;
-
+bool points_over;
 // Optimization idea -- Dont place node everywhere. Directly memcpy 
 
 
@@ -39,7 +39,7 @@ void printNode(void* n){
     cout<<"node"<<endl;
 
     loop(i,0,nodesize){
-        if(node[i]!=0) cout<<node[i]<<endl;
+        cout<<i<<" "<<node[i]<<endl;
     }    
 }
 
@@ -129,6 +129,7 @@ void fun(int i){
 
 void bulkload(string location ,int N){
 	fstream forgo;
+    points_over = false;
     forgo.open("temp.txt",ios::out); 
     levelfiles.push_back(fm.CreateFile("./Files/0.txt"));
 	levels.push_back(1);
@@ -173,7 +174,7 @@ void bulkload(string location ,int N){
 					int pagenumber = levelpages[j].GetPageNum();
 					levelfiles[j].MarkDirty(pagenumber);
 					levelfiles[j].UnpinPage(pagenumber);
-					levelfiles[j].FlushPages();
+					// levelfiles[j].FlushPages();
 				}
 				return;
 			}
@@ -219,14 +220,17 @@ void bulkload(string location ,int N){
 // for (non_leaf) internal nodes
 bool iis_contained(vector<int> & point, int* mbrs){
     loop(j,0,d){
-        // if(mbrs[j]==0) cout<<mbrs[j]<<mbrs[d+j]<<endl;
-        if(mbrs[j]>point[j] || mbrs[d+j]<point[j]) return false;
+        if(mbrs[j]>point[j] || mbrs[d+j]<point[j]) {
+            return false;
+        }
     }
     return true;
 }
 
 // for leaf nodes
 bool lis_contained(vector<int> & point, int* node){
+    // cout<< "\n\nat leaf level"<<endl;
+    // printNode(node);
     loop(j,0,d){
         if(node[2+j]>point[j] || node[2+d+j]<point[j]) return false;
     }
@@ -248,9 +252,11 @@ bool lis_contained(vector<int> & point, int* node){
 }
 
 bool non_leaf_match(vector<int> & point, int* node, int level){
+    // cout<< "\n\nat internal level "<<level <<endl;    
+    // printNode(node);
     loop(i, 0, maxcap){
-        if(node[2*d+3 + i *(2*d+1)]== INT_MAX || node[2*d+3 + i *(2*d+1)]== INT_MIN) break; //started chechking empty nodes.
-        else if(iis_contained(point, node+(2*d+3 + i *(2*d+1)))){
+        // if(node[2*d+3 + i *(2*d+1)]== INT_MAX || node[2*d+3 + i *(2*d+1)]== INT_MIN) break; //started chechking empty nodes.
+        if(iis_contained(point, node+(2*d+3 + i *(2*d+1)))){
             int* childpos = (node + (2*d+2 + i *(2*d+1)));
             int childnum;
             memcpy(&childnum, childpos, intsize);
@@ -258,12 +264,13 @@ bool non_leaf_match(vector<int> & point, int* node, int level){
             leveldata[level-1]=levelpages[level-1].GetData();
             int childnode[nodesize];
             memcpy(childnode, &leveldata[level-1][(childnum%pagecap)*nodesize*intsize], intsize*nodesize);
-            
+            cout<<"printing child"<<endl;
+            // printNode(childnode);
             bool is_present = false;
             if(level==1) //moving to the leaf node next
-                if(lis_contained(point, childnode)) is_present = true;
+               { if(lis_contained(point, childnode)) is_present = true;}
             else
-                if(non_leaf_match(point, childnode, level-1)) is_present = true; 
+               { if(non_leaf_match(point, childnode, level-1)) is_present = true; }
             
             if(is_present){
                 levelfiles[level].UnpinPage(levelpages[level].GetPageNum());
@@ -276,7 +283,7 @@ bool non_leaf_match(vector<int> & point, int* node, int level){
 }
 
 bool query(vector<int> & point){
-    int root_pos = levels.size()-2; //root node is with levels value as 1. 
+    int root_pos = levels.size()-1; //root node is with levels value as 1. 
     int root_node[nodesize];
     // sudesh
     // fm.PrintBuffer();
@@ -288,6 +295,7 @@ bool query(vector<int> & point){
     // loop(i,0,nodesize){
     //     cout<<i<<" "<<root_node[i]<<endl;
     // }
+    printNode(root_node);
     if(root_pos==0) return false;
     if(iis_contained(point, root_node+2))
         return non_leaf_match(point, root_node, root_pos);
