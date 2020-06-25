@@ -363,7 +363,7 @@ int main( int argc, char *argv[]) {
                     file<<"TRUE";
                 else file<<"FALSE";
                 file << "\n\n";
-                // break;
+                break;
 			}
 		}
 	  	newfile.close(); 
