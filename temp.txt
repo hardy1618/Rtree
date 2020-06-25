@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 1
 1 0 = 0 --1 
 1 1 = 0 --1 
@@ -4017,3 +4018,5 @@ printing child
 printing child
 printing child
 printing child
+=======
+>>>>>>> a14db25306a0cd18c114be05ead4d1787dd17e9a
